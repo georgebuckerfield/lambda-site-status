@@ -7,9 +7,8 @@ import uuid
 
 def http_check(url):
   check = requests.get(url)
-  getcontext().prec = 6
-  resp_time = Decimal(check.elapsed.total_seconds())
-  resp_code = check.status_code
+  resp_time = str(check.elapsed.total_seconds())
+  resp_code = str(check.status_code)
   return resp_code, resp_time
 
 
@@ -29,17 +28,16 @@ def db_get_url(site):
 
 def db_update(site, check_time, check_resp_code, check_resp_time):
   print("Updating DynamoDB")
-  dynamodb = boto3.resource('dynamodb')
-  table = dynamodb.Table('site-status-history')
-
+  client = boto3.client('dynamodb')
   check_id = str(uuid.uuid4())
-  check_record = table.put_item(
+  check_record = client.put_item(
+    TableName='site-status-history',
     Item={
-      'check_id': check_id,
-      'check_site': site,
-      'check_time': check_time,
-      'check_resp_code': check_resp_code,
-      'check_resp_time': check_resp_time
+      'check_id': {'S': check_id},
+      'check_site': {'S': site},
+      'check_time': {'S': check_time},
+      'check_resp_code': {'S': check_resp_code},
+      'check_resp_time': {'N': check_resp_time}
     }
   )
 
